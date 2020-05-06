@@ -21,20 +21,34 @@
  */
  
 require_once('../../config.php');
-//$cmid = required_param('id', PARAM_INT);
-//$cm = get_coursemodule_from_id('helloworld', $cmid, 0, false, MUST_EXIST);
-//$course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
- 
-//require_login($course, true, $cm);
+require_once($CFG->libdir . '/tablelib.php');
 
-$PAGE->set_url('/report/helloworld/view.php', array('key' => 'value', 'id' => 3));
+$PAGE->set_url('/report/helloworld/view.php');
 $PAGE->set_context(context_system::instance());
 
-$PAGE->set_title(get_string('pagetitle','report_helloworld'));
-$PAGE->set_heading(get_string('pageheading', 'report_helloworld'));
-echo $OUTPUT->header();
-echo $OUTPUT->box('Hello World!');
-echo $OUTPUT->box(get_string('sayhello','report_helloworld', $USER->firstname)); // lang not updating?
-//echo $OUTPUT->box('My ID is ' . id);
-echo $OUTPUT->footer();
+$row1 = array('Brendan','brendan@myemail.com','Active');
+$row2 = array('Kerrod','kerrod@myemail.com','Active');
+$row3 = array('Matt','matt@myemail.com','Active');
 
+$helloworld_htmltable = new html_table();
+$helloworld_htmltable->head = array('Name','Email','Status');
+$helloworld_htmltable->data = array();
+$helloworld_htmltable->data[] = new html_table_row($row1);
+$helloworld_htmltable->data[] = new html_table_row($row2);
+$helloworld_htmltable->data[] = new html_table_row($row3);
+
+$helloworld_sqltable = new table_sql('helloworld_sqltable');
+$helloworld_sqltable->set_sql('*', "{user}", '1=1');
+$helloworld_sqltable->define_baseurl('/report/helloworld/view.php');
+
+$PAGE->set_title(get_string('pagetitle','report_helloworld'));
+$PAGE->set_heading(get_string('sayhello','report_helloworld', $USER->firstname));
+echo $OUTPUT->header();
+
+echo $OUTPUT->box('My HTML Table:');
+echo html_writer::table($helloworld_htmltable);
+
+echo $OUTPUT->box('My SQL Table:');
+$helloworld_sqltable->out(40,true);
+
+echo $OUTPUT->footer();
