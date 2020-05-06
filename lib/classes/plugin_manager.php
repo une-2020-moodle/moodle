@@ -1960,13 +1960,13 @@ class core_plugin_manager {
 
             'quizaccess' => array(
                 'delaybetweenattempts', 'ipaddress', 'numattempts', 'offlineattempts', 'openclosedate',
-                'password', 'safebrowser', 'securewindow', 'timelimit'
+                'password', 'seb', 'securewindow', 'timelimit'
             ),
 
             'report' => array(
                 'backups', 'competency', 'completion', 'configlog', 'courseoverview', 'eventlist',
                 'insights', 'log', 'loglive', 'outline', 'participation', 'progress', 'questioninstances',
-                'security', 'stats', 'performance', 'usersessions'
+                'security', 'stats', 'status', 'performance', 'usersessions'
             ),
 
             'repository' => array(

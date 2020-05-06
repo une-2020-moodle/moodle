@@ -9438,7 +9438,7 @@ function get_performance_info() {
         // Attempt to avoid devs debugging peformance issues, when its caused by css building and so on.
         $info['html'] .= '<p><strong>Warning: Theme designer mode is enabled.</strong></p>';
     }
-    $info['html'] .= '<ul class="list-unstyled ml-1 row">';         // Holds userfriendly HTML representation.
+    $info['html'] .= '<ul class="list-unstyled row mx-md-0">';         // Holds userfriendly HTML representation.
 
     $info['realtime'] = microtime_diff($PERF->starttime, microtime());
 
@@ -9462,7 +9462,7 @@ function get_performance_info() {
         $info['txt']  .= 'memory_peak: '.$info['memory_peak'].'B (' . display_size($info['memory_peak']).') ';
     }
 
-    $info['html'] .= '</ul><ul class="list-unstyled ml-1 row">';
+    $info['html'] .= '</ul><ul class="list-unstyled row mx-md-0">';
     $inc = get_included_files();
     $info['includecount'] = count($inc);
     $info['html'] .= '<li class="included col-sm-4">Included '.$info['includecount'].' files</li> ';
@@ -9546,57 +9546,185 @@ function get_performance_info() {
     }
 
     $info['html'] .= '</ul>';
+    $html = '';
     if ($stats = cache_helper::get_stats()) {
-        $html = '<ul class="cachesused list-unstyled ml-1 row">';
-        $html .= '<li class="cache-stats-heading font-weight-bold">Caches used (hits/misses/sets)</li>';
-        $html .= '</ul><ul class="cachesused list-unstyled ml-1">';
+
+        $table = new html_table();
+        $table->attributes['class'] = 'cachesused table table-dark table-sm w-auto table-bordered';
+        $table->head = ['Mode', 'Cache item', 'Static', 'H', 'M', get_string('mappingprimary', 'cache'), 'H', 'M', 'S'];
+        $table->data = [];
+        $table->align = ['left', 'left', 'left', 'right', 'right', 'left', 'right', 'right', 'right'];
+
         $text = 'Caches used (hits/misses/sets): ';
         $hits = 0;
         $misses = 0;
         $sets = 0;
+        $maxstores = 0;
+
+        // We want to align static caches into their own column.
+        $hasstatic = false;
+        foreach ($stats as $definition => $details) {
+            $numstores = count($details['stores']);
+            $first = key($details['stores']);
+            if ($first !== cache_store::STATIC_ACCEL) {
+                $numstores++; // Add a blank space for the missing static store.
+            }
+            $maxstores = max($maxstores, $numstores);
+        }
+
+        $storec = 0;
+
+        while ($storec++ < ($maxstores - 2)) {
+            if ($storec == ($maxstores - 2)) {
+                $table->head[] = get_string('mappingfinal', 'cache');
+            } else {
+                $table->head[] = "Store $storec";
+            }
+            $table->align[] = 'left';
+            $table->align[] = 'right';
+            $table->align[] = 'right';
+            $table->align[] = 'right';
+            $table->head[] = 'H';
+            $table->head[] = 'M';
+            $table->head[] = 'S';
+        }
+
+        ksort($stats);
+
         foreach ($stats as $definition => $details) {
             switch ($details['mode']) {
                 case cache_store::MODE_APPLICATION:
                     $modeclass = 'application';
-                    $mode = ' <span title="application cache">[a]</span>';
+                    $mode = ' <span title="application cache">App</span>';
                     break;
                 case cache_store::MODE_SESSION:
                     $modeclass = 'session';
-                    $mode = ' <span title="session cache">[s]</span>';
+                    $mode = ' <span title="session cache">Ses</span>';
                     break;
                 case cache_store::MODE_REQUEST:
                     $modeclass = 'request';
-                    $mode = ' <span title="request cache">[r]</span>';
+                    $mode = ' <span title="request cache">Req</span>';
                     break;
             }
-            $html .= '<li class="d-inline-flex"><ul class="cache-definition-stats list-unstyled ml-1 mb-1 cache-mode-'.$modeclass.' card d-inline-block">';
-            $html .= '<li class="cache-definition-stats-heading p-t-1 card-header bg-dark bg-inverse font-weight-bold">' .
-                $definition . $mode.'</li>';
+            $row = [$mode, $definition];
+
             $text .= "$definition {";
+
+            $storec = 0;
             foreach ($details['stores'] as $store => $data) {
-                $hits += $data['hits'];
+
+                if ($storec == 0 && $store !== cache_store::STATIC_ACCEL) {
+                    $row[] = '';
+                    $row[] = '';
+                    $row[] = '';
+                    $storec++;
+                }
+
+                $hits   += $data['hits'];
                 $misses += $data['misses'];
-                $sets += $data['sets'];
+                $sets   += $data['sets'];
                 if ($data['hits'] == 0 and $data['misses'] > 0) {
-                    $cachestoreclass = 'nohits text-danger';
+                    $cachestoreclass = 'nohits bg-danger';
                 } else if ($data['hits'] < $data['misses']) {
-                    $cachestoreclass = 'lowhits text-warning';
+                    $cachestoreclass = 'lowhits bg-warning text-dark';
                 } else {
-                    $cachestoreclass = 'hihits text-success';
+                    $cachestoreclass = 'hihits';
                 }
                 $text .= "$store($data[hits]/$data[misses]/$data[sets]) ";
-                $html .= "<li class=\"cache-store-stats $cachestoreclass p-x-1\">" .
-                    "$store: $data[hits] / $data[misses] / $data[sets]</li>";
-                // This makes boxes of same sizes.
-                if (count($details['stores']) == 1) {
-                    $html .= "<li class=\"cache-store-stats $cachestoreclass p-x-1\">&nbsp;</li>";
+                $cell = new html_table_cell($store);
+                $cell->attributes = ['class' => $cachestoreclass];
+                $row[] = $cell;
+                $cell = new html_table_cell($data['hits']);
+                $cell->attributes = ['class' => $cachestoreclass];
+                $row[] = $cell;
+                $cell = new html_table_cell($data['misses']);
+                $cell->attributes = ['class' => $cachestoreclass];
+                $row[] = $cell;
+
+                if ($store !== cache_store::STATIC_ACCEL) {
+                    // The static cache is never set.
+                    $cell = new html_table_cell($data['sets']);
+                    $cell->attributes = ['class' => $cachestoreclass];
+                    $row[] = $cell;
                 }
+                $storec++;
             }
-            $html .= '</ul></li>';
+            while ($storec++ < $maxstores) {
+                $row[] = '';
+                $row[] = '';
+                $row[] = '';
+                $row[] = '';
+            }
             $text .= '} ';
+
+            $table->data[] = $row;
         }
-        $html .= '</ul> ';
-        $html .= "<div class='cache-total-stats row'>Total: $hits / $misses / $sets</div>";
+
+        $html .= html_writer::table($table);
+
+        // Now lets also show sub totals for each cache store.
+        $storetotals = [];
+        $storetotal = ['hits' => 0, 'misses' => 0, 'sets' => 0];
+        foreach ($stats as $definition => $details) {
+            foreach ($details['stores'] as $store => $data) {
+                if (!array_key_exists($store, $storetotals)) {
+                    $storetotals[$store] = ['hits' => 0, 'misses' => 0, 'sets' => 0];
+                }
+                $storetotals[$store]['class']   = $data['class'];
+                $storetotals[$store]['hits']   += $data['hits'];
+                $storetotals[$store]['misses'] += $data['misses'];
+                $storetotals[$store]['sets']   += $data['sets'];
+                $storetotal['hits']   += $data['hits'];
+                $storetotal['misses'] += $data['misses'];
+                $storetotal['sets']   += $data['sets'];
+            }
+        }
+
+        $table = new html_table();
+        $table->attributes['class'] = 'cachesused table table-dark table-sm w-auto table-bordered';
+        $table->head = [get_string('storename', 'cache'), get_string('type_cachestore', 'plugin'), 'H', 'M', 'S'];
+        $table->data = [];
+        $table->align = ['left', 'left', 'right', 'right', 'right'];
+
+        ksort($storetotals);
+
+        foreach ($storetotals as $store => $data) {
+            $row = [];
+            if ($data['hits'] == 0 and $data['misses'] > 0) {
+                $cachestoreclass = 'nohits bg-danger';
+            } else if ($data['hits'] < $data['misses']) {
+                $cachestoreclass = 'lowhits bg-warning text-dark';
+            } else {
+                $cachestoreclass = 'hihits';
+            }
+            $cell = new html_table_cell($store);
+            $cell->attributes = ['class' => $cachestoreclass];
+            $row[] = $cell;
+            $cell = new html_table_cell($data['class']);
+            $cell->attributes = ['class' => $cachestoreclass];
+            $row[] = $cell;
+            $cell = new html_table_cell($data['hits']);
+            $cell->attributes = ['class' => $cachestoreclass];
+            $row[] = $cell;
+            $cell = new html_table_cell($data['misses']);
+            $cell->attributes = ['class' => $cachestoreclass];
+            $row[] = $cell;
+            $cell = new html_table_cell($data['sets']);
+            $cell->attributes = ['class' => $cachestoreclass];
+            $row[] = $cell;
+            $table->data[] = $row;
+        }
+        $row = [
+            get_string('total'),
+            '',
+            $storetotal['hits'],
+            $storetotal['misses'],
+            $storetotal['sets'],
+        ];
+        $table->data[] = $row;
+
+        $html .= html_writer::table($table);
+
         $info['cachesused'] = "$hits / $misses / $sets";
         $info['html'] .= $html;
         $info['txt'] .= $text.'. ';
@@ -9606,7 +9734,7 @@ function get_performance_info() {
         $info['txt'] .= 'Caches used (hits/misses/sets): 0/0/0 ';
     }
 
-    $info['html'] = '<div class="performanceinfo siteinfo container-fluid">'.$info['html'].'</div>';
+    $info['html'] = '<div class="performanceinfo siteinfo container-fluid px-md-0 overflow-auto mt-3">'.$info['html'].'</div>';
     return $info;
 }
 
@@ -10443,17 +10571,25 @@ function get_callable_name($callable) {
  * It just performs some simple checks, and mainly is used for places where we want to hide some options
  * such as site registration when $CFG->wwwroot is not publicly accessible.
  * Good thing is there is no false negative.
+ * Note that it's possible to force the result of this check by specifying $CFG->site_is_public in config.php
  *
  * @return bool
  */
 function site_is_public() {
     global $CFG;
 
+    // Return early if site admin has forced this setting.
+    if (isset($CFG->site_is_public)) {
+        return (bool)$CFG->site_is_public;
+    }
+
     $host = parse_url($CFG->wwwroot, PHP_URL_HOST);
 
     if ($host === 'localhost' || preg_match('|^127\.\d+\.\d+\.\d+$|', $host)) {
         $ispublic = false;
     } else if (\core\ip_utils::is_ip_address($host) && !ip_is_public($host)) {
+        $ispublic = false;
+    } else if (($address = \core\ip_utils::get_ip_address($host)) && !ip_is_public($address)) {
         $ispublic = false;
     } else {
         $ispublic = true;
