@@ -26,9 +26,14 @@ require_once($CFG->libdir . '/tablelib.php');
 $PAGE->set_url('/report/helloworld/view.php');
 $PAGE->set_context(context_system::instance());
 
-$row1 = array('Brendan','brendan@myemail.com','Active','<a href="https://www.google.com.au">Google</a>');
-$row2 = array('Kerrod','kerrod@myemail.com','Active','<a href="https://www.une.edu.au">UNE</a>');  
-$row3 = array('Matt','matt@myemail.com','Active','<a href="https://www.wikipedia.org">Wikipedia</a>');
+$row1 = array('Brendan','brendan@myemail.com','Active','<a href="https://www.google.com.au">Google</a>',testAction("Brendan"));
+$row2 = array('Kerrod','kerrod@myemail.com','Active','<a href="https://www.une.edu.au">UNE</a>',testAction("Kerrod"));  
+$row3 = array('Matt','matt@myemail.com','Active','<a href="https://www.wikipedia.org">Wikipedia</a>',testAction("Matt"));
+
+//dummy function to test calling from HTML table row
+function testAction($x) {
+    return "this works for: " . $x;
+}
 
 $helloworld_htmltable = new html_table();
 $helloworld_htmltable->head = array('Name','Email','Status','Actions');
