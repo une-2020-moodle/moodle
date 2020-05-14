@@ -46,6 +46,7 @@ define('TABLE_P_TOP',    1);
 define('TABLE_P_BOTTOM', 2);
 /**#@-*/
 
+use core_table\local\filter\filterset;
 
 /**
  * @package   moodlecore
@@ -156,6 +157,15 @@ class flexible_table {
 
     /** @var array $hiddencolumns List of hidden columns. */
     protected $hiddencolumns;
+
+    /** @var $resetting bool Whether the table preferences is resetting. */
+    protected $resetting;
+
+    /**
+     * @var filterset The currently applied filerset
+     * This is required for dynamic tables, but can be used by other tables too if desired.
+     */
+    protected $filterset = null;
 
     /**
      * Constructor
@@ -479,54 +489,37 @@ class flexible_table {
     }
 
     /**
+     * Mark the table preferences to be reset.
+     */
+    public function mark_table_to_reset(): void {
+        $this->resetting = true;
+    }
+
+    /**
+     * Is the table marked for reset preferences?
+     *
+     * @return bool True if the table is marked to reset, false otherwise.
+     */
+    protected function is_resetting_preferences(): bool {
+        if ($this->resetting === null) {
+            $this->resetting = optional_param($this->request[TABLE_VAR_RESET], false, PARAM_BOOL);
+        }
+
+        return $this->resetting;
+}
+
+    /**
      * Must be called after table is defined. Use methods above first. Cannot
      * use functions below till after calling this method.
      * @return type?
      */
     function setup() {
-        global $SESSION;
 
         if (empty($this->columns) || empty($this->uniqueid)) {
             return false;
         }
 
-        // Load any existing user preferences.
-        if ($this->persistent) {
-            $this->prefs = json_decode(get_user_preferences('flextable_' . $this->uniqueid), true);
-            $oldprefs = $this->prefs;
-        } else if (isset($SESSION->flextable[$this->uniqueid])) {
-            $this->prefs = $SESSION->flextable[$this->uniqueid];
-            $oldprefs = $this->prefs;
-        }
-
-        // Set up default preferences if needed.
-        if (!$this->prefs or optional_param($this->request[TABLE_VAR_RESET], false, PARAM_BOOL)) {
-            $this->prefs = array(
-                'collapse' => array(),
-                'sortby'   => array(),
-                'i_first'  => '',
-                'i_last'   => '',
-                'textsort' => $this->column_textsort,
-            );
-        }
-
-        if (!isset($oldprefs)) {
-            $oldprefs = $this->prefs;
-        }
-
-        $this->set_hide_show_preferences();
-        $this->set_sorting_preferences();
-        $this->set_initials_preferences();
-
-        // Save user preferences if they have changed.
-        if ($this->prefs != $oldprefs) {
-            if ($this->persistent) {
-                set_user_preference('flextable_' . $this->uniqueid, json_encode($this->prefs));
-            } else {
-                $SESSION->flextable[$this->uniqueid] = $this->prefs;
-            }
-        }
-        unset($oldprefs);
+        $this->initialise_table_preferences();
 
         if (empty($this->baseurl)) {
             debugging('You should set baseurl when using flexible_table.');
@@ -831,9 +824,9 @@ class flexible_table {
      * @return string contents of cell in column 'fullname', for this row.
      */
     function col_fullname($row) {
-        global $PAGE, $COURSE;
+        global $COURSE;
 
-        $name = fullname($row, has_capability('moodle/site:viewfullnames', $PAGE->context));
+        $name = fullname($row, has_capability('moodle/site:viewfullnames', $this->get_context()));
         if ($this->download) {
             return $name;
         }
@@ -1211,7 +1204,7 @@ class flexible_table {
      * This function is not part of the public api.
      */
     function print_headers() {
-        global $CFG, $OUTPUT, $PAGE;
+        global $CFG, $OUTPUT;
 
         echo html_writer::start_tag('thead');
         echo html_writer::start_tag('tr');
@@ -1233,7 +1226,7 @@ class flexible_table {
 
                 case 'fullname':
                     // Check the full name display for sortable fields.
-                    if (has_capability('moodle/site:viewfullnames', $PAGE->context)) {
+                    if (has_capability('moodle/site:viewfullnames', $this->get_context())) {
                         $nameformat = $CFG->alternativefullnameformat;
                     } else {
                         $nameformat = $CFG->fullnamedisplay;
@@ -1404,6 +1397,103 @@ class flexible_table {
      */
     public function set_hidden_columns(array $columns): void {
         $this->hiddencolumns = $columns;
+    }
+
+    /**
+     * Initialise table preferences.
+     */
+    protected function initialise_table_preferences(): void {
+        global $SESSION;
+
+        // Load any existing user preferences.
+        if ($this->persistent) {
+            $this->prefs = json_decode(get_user_preferences('flextable_' . $this->uniqueid), true);
+            $oldprefs = $this->prefs;
+        } else if (isset($SESSION->flextable[$this->uniqueid])) {
+            $this->prefs = $SESSION->flextable[$this->uniqueid];
+            $oldprefs = $this->prefs;
+        }
+
+        // Set up default preferences if needed.
+        if (!$this->prefs || $this->is_resetting_preferences()) {
+            $this->prefs = [
+                'collapse' => [],
+                'sortby'   => [],
+                'i_first'  => '',
+                'i_last'   => '',
+                'textsort' => $this->column_textsort,
+            ];
+        }
+
+        if (!isset($oldprefs)) {
+            $oldprefs = $this->prefs;
+        }
+
+        // Save user preferences if they have changed.
+        if ($this->is_resetting_preferences()) {
+            $this->sortorder = null;
+            $this->sortby = null;
+            $this->ifirst = null;
+            $this->ilast = null;
+        }
+
+        if (($showcol = optional_param($this->request[TABLE_VAR_SHOW], '', PARAM_ALPHANUMEXT)) &&
+            isset($this->columns[$showcol])) {
+            $this->prefs['collapse'][$showcol] = false;
+        } else if (($hidecol = optional_param($this->request[TABLE_VAR_HIDE], '', PARAM_ALPHANUMEXT)) &&
+            isset($this->columns[$hidecol])) {
+            $this->prefs['collapse'][$hidecol] = true;
+            if (array_key_exists($hidecol, $this->prefs['sortby'])) {
+                unset($this->prefs['sortby'][$hidecol]);
+            }
+        }
+
+        // Now, update the column attributes for collapsed columns
+        foreach (array_keys($this->columns) as $column) {
+            if (!empty($this->prefs['collapse'][$column])) {
+                $this->column_style[$column]['width'] = '10px';
+            }
+        }
+
+        // Now, update the column attributes for collapsed columns
+        foreach (array_keys($this->columns) as $column) {
+            if (!empty($this->prefs['collapse'][$column])) {
+                $this->column_style[$column]['width'] = '10px';
+            }
+        }
+
+        $this->set_sorting_preferences();
+        $this->set_initials_preferences();
+
+        if (empty($this->baseurl)) {
+            debugging('You should set baseurl when using flexible_table.');
+            global $PAGE;
+            $this->baseurl = $PAGE->url;
+        }
+
+        if ($this->currpage == null) {
+            $this->currpage = optional_param($this->request[TABLE_VAR_PAGE], 0, PARAM_INT);
+        }
+
+        $this->save_preferences($oldprefs);
+    }
+
+    /**
+     * Save preferences.
+     *
+     * @param array $oldprefs Old preferences to compare against.
+     */
+    protected function save_preferences($oldprefs): void {
+        global $SESSION;
+
+        if ($this->prefs != $oldprefs) {
+            if ($this->persistent) {
+                set_user_preference('flextable_' . $this->uniqueid, json_encode($this->prefs));
+            } else {
+                $SESSION->flextable[$this->uniqueid] = $this->prefs;
+            }
+        }
+        unset($oldprefs);
     }
 
     /**
@@ -1692,6 +1782,55 @@ class flexible_table {
         }
 
         return false;
+    }
+
+    /**
+     * Get the context for the table.
+     *
+     * Note: This function _must_ be overridden by dynamic tables to ensure that the context is correctly determined
+     * from the filterset parameters.
+     *
+     * @return context
+     */
+    public function get_context(): context {
+        global $PAGE;
+
+        if (is_a($this, \core_table\dynamic::class)) {
+            throw new coding_exception('The get_context function must be defined for a dynamic table');
+        }
+
+        return $PAGE->context;
+    }
+
+    /**
+     * Set the filterset in the table class.
+     *
+     * The use of filtersets is a requirement for dynamic tables, but can be used by other tables too if desired.
+     *
+     * @param filterset $filterset The filterset object to get filters and table parameters from
+     */
+    public function set_filterset(filterset $filterset): void {
+        $this->filterset = $filterset;
+
+        $this->guess_base_url();
+    }
+
+    /**
+     * Get the currently defined filterset.
+     *
+     * @return filterset
+     */
+    public function get_filterset(): ?filterset {
+        return $this->filterset;
+    }
+
+    /**
+     * Attempt to guess the base URL.
+     */
+    public function guess_base_url(): void {
+        if (is_a($this, \core_table\dynamic::class)) {
+            throw new coding_exception('The guess_base_url function must be defined for a dynamic table');
+        }
     }
 }
 

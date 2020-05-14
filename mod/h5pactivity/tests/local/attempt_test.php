@@ -31,6 +31,7 @@ use \core_xapi\local\statement\item_agent;
 use \core_xapi\local\statement\item_activity;
 use \core_xapi\local\statement\item_definition;
 use \core_xapi\local\statement\item_verb;
+use \core_xapi\local\statement\item_result;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -134,6 +135,9 @@ class attempt_testcase extends \advanced_testcase {
         $this->assertEquals(0, $attempt->get_maxscore());
         $this->assertEquals(0, $attempt->get_rawscore());
         $this->assertEquals(0, $attempt->count_results());
+        $this->assertEquals(0, $attempt->get_duration());
+        $this->assertNull($attempt->get_completion());
+        $this->assertNull($attempt->get_success());
 
         $statement = $this->generate_statement($hasdefinition, $hasresult);
         $result = $attempt->save_statement($statement, $subcontent);
@@ -141,6 +145,9 @@ class attempt_testcase extends \advanced_testcase {
         $this->assertEquals($results[1], $attempt->get_maxscore());
         $this->assertEquals($results[2], $attempt->get_rawscore());
         $this->assertEquals($results[3], $attempt->count_results());
+        $this->assertEquals($results[4], $attempt->get_duration());
+        $this->assertEquals($results[5], $attempt->get_completion());
+        $this->assertEquals($results[6], $attempt->get_success());
     }
 
     /**
@@ -151,28 +158,28 @@ class attempt_testcase extends \advanced_testcase {
     public function save_statement_data(): array {
         return [
             'Statement without definition and result' => [
-                '', false, false, [false, 0, 0, 0]
+                '', false, false, [false, 0, 0, 0, 0, null, null]
             ],
             'Statement with definition but no result' => [
-                '', true, false, [false, 0, 0, 0]
+                '', true, false, [false, 0, 0, 0, 0, null, null]
             ],
             'Statement with result but no definition' => [
-                '', true, false, [false, 0, 0, 0]
+                '', true, false, [false, 0, 0, 0, 0, null, null]
             ],
             'Statement subcontent without definition and result' => [
-                '111-222-333', false, false, [false, 0, 0, 0]
+                '111-222-333', false, false, [false, 0, 0, 0, 0, null, null]
             ],
             'Statement subcontent with definition but no result' => [
-                '111-222-333', true, false, [false, 0, 0, 0]
+                '111-222-333', true, false, [false, 0, 0, 0, 0, null, null]
             ],
             'Statement subcontent with result but no definition' => [
-                '111-222-333', true, false, [false, 0, 0, 0]
+                '111-222-333', true, false, [false, 0, 0, 0, 0, null, null]
             ],
             'Statement with definition, result but no subcontent' => [
-                '', true, true, [true, 2, 2, 1]
+                '', true, true, [true, 2, 2, 1, 25, 1, 1]
             ],
             'Statement with definition, result and subcontent' => [
-                '111-222-333', true, true, [true, 0, 0, 1]
+                '111-222-333', true, true, [true, 0, 0, 1, 0, null, null]
             ],
         ];
     }
@@ -335,10 +342,11 @@ class attempt_testcase extends \advanced_testcase {
         }
         $statement->set_object(item_activity::create_from_id('something', $definition));
         if ($hasresult) {
-            $statement->set_result(item::create_from_data((object)[
+            $statement->set_result(item_result::create_from_data((object)[
                 'completion' => true,
                 'success' => true,
                 'score' => (object) ['min' => 0, 'max' => 2, 'raw' => 2, 'scaled' => 1],
+                'duration' => 'PT25S',
             ]));
         }
         return $statement;

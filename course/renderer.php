@@ -368,11 +368,11 @@ class core_course_renderer extends plugin_renderer_base {
             $ajaxcontrol .= html_writer::start_tag('div', array('class' => 'section-modchooser'));
             $icon = $this->output->pix_icon('t/add', '');
             $span = html_writer::tag('span', $straddeither, array('class' => 'section-modchooser-text'));
-            $ajaxcontrol .= html_writer::tag('button', $icon . $span, array(
+            $ajaxcontrol .= html_writer::tag('button', $icon . $span, [
                     'class' => 'section-modchooser-link btn btn-link',
                     'data-action' => 'open-chooser',
                     'data-sectionid' => $section,
-                )
+                ]
             );
             $ajaxcontrol .= html_writer::end_tag('div');
             $ajaxcontrol .= html_writer::end_tag('div');
@@ -903,7 +903,7 @@ class core_course_renderer extends plugin_renderer_base {
             $output .= course_get_cm_move($mod, $sectionreturn);
         }
 
-        $output .= html_writer::start_tag('div', array('class' => 'mod-indent-outer'));
+        $output .= html_writer::start_tag('div', array('class' => 'mod-indent-outer w-100'));
 
         // This div is used to indent the content.
         $output .= html_writer::div('', $indentclasses);

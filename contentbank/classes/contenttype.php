@@ -24,7 +24,9 @@
 
 namespace core_contentbank;
 
-use coding_exception;
+use core\event\contentbank_content_created;
+use core\event\contentbank_content_deleted;
+use core\event\contentbank_content_viewed;
 use moodle_url;
 
 /**
@@ -39,7 +41,7 @@ abstract class contenttype {
     /** Plugin implements uploading feature */
     const CAN_UPLOAD = 'upload';
 
-    /** @var context This content's context. **/
+    /** @var context This contenttype's context. **/
     protected $context = null;
 
     /**
@@ -72,10 +74,15 @@ abstract class contenttype {
         $entry->usermodified = $entry->usercreated;
         $entry->timemodified = $entry->timecreated;
         $entry->configdata = $record->configdata ?? '';
+        $entry->instanceid = $record->instanceid ?? 0;
         $entry->id = $DB->insert_record('contentbank_content', $entry);
         if ($entry->id) {
             $classname = '\\'.$entry->contenttype.'\\content';
-            return new $classname($entry);
+            $content = new $classname($entry);
+            // Trigger an event for creating the content.
+            $event = contentbank_content_created::create_from_record($content->get_content());
+            $event->trigger();
+            return $content;
         }
         return null;
     }
@@ -96,7 +103,35 @@ abstract class contenttype {
         }
 
         // Delete the contentbank DB entry.
-        return $DB->delete_records('contentbank_content', ['id' => $content->get_id()]);
+        $result = $DB->delete_records('contentbank_content', ['id' => $content->get_id()]);
+        if ($result) {
+            // Trigger an event for deleting this content.
+            $record = $content->get_content();
+            $event = contentbank_content_deleted::create([
+                'objectid' => $content->get_id(),
+                'relateduserid' => $record->usercreated,
+                'context' => \context::instance_by_id($record->contextid),
+                'other' => [
+                    'contenttype' => $content->get_content_type(),
+                    'name' => $content->get_name()
+                ]
+            ]);
+            $event->add_record_snapshot('contentbank_content', $record);
+            $event->trigger();
+        }
+        return $result;
+    }
+
+    /**
+     * Rename this content from the content_bank.
+     * This method can be overwritten by the plugins if they need to change some other specific information.
+     *
+     * @param  content $content The content to rename.
+     * @param string $name  The name of the content.
+     * @return boolean true if the content has been renamed; false otherwise.
+     */
+    public function rename_content(content $content, string $name): bool {
+        return $content->set_name($name);
     }
 
     /**
@@ -138,6 +173,10 @@ abstract class contenttype {
      * @return string           HTML code to include in view.php.
      */
     public function get_view_content(\stdClass $record): string {
+        // Trigger an event for viewing this content.
+        $event = contentbank_content_viewed::create_from_record($record);
+        $event->trigger();
+
         // Main contenttype class can visualize the content, but plugins could overwrite visualization.
         return '';
     }
@@ -236,6 +275,41 @@ abstract class contenttype {
      * @return bool True if content allows uploading. False otherwise.
      */
     protected function is_delete_allowed(content $content): bool {
+        // Plugins can overwrite this function to add any check they need.
+        return true;
+    }
+
+    /**
+     * Check if the user can managed this content.
+     *
+     * @param  content $content The content to be managed.
+     * @return bool     True if content could be managed. False otherwise.
+     */
+    public final function can_manage(content $content): bool {
+        global $USER;
+
+        if ($this->context->id != $content->get_content()->contextid) {
+            // The content has to have exactly the same context as this contenttype.
+            return false;
+        }
+
+        // Check main contentbank management permission.
+        $hascapability = has_capability('moodle/contentbank:manageanycontent', $this->context);
+        if ($content->get_content()->usercreated == $USER->id) {
+            // This content has been created by the current user; check if they can manage their content.
+            $hascapability = $hascapability || has_capability('moodle/contentbank:manageowncontent', $this->context);
+        }
+
+        return $hascapability && $this->is_manage_allowed($content);
+    }
+
+    /**
+     * Returns if content allows managing.
+     *
+     * @param  content $content The content to be managed.
+     * @return bool True if content allows uploading. False otherwise.
+     */
+    protected function is_manage_allowed(content $content): bool {
         // Plugins can overwrite this function to add any check they need.
         return true;
     }

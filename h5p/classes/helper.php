@@ -259,7 +259,7 @@ class helper {
                 '/admin/tool/task/scheduledtasks.php',
                 array('action' => 'edit', 'task' => get_class($task))
             );
-            if ($status && \tool_task\run_from_cli::is_runnable() && get_config('tool_task', 'enablerunnow')) {
+            if ($status && \core\task\manager::is_runnable() && get_config('tool_task', 'enablerunnow')) {
                 $statusaction = \html_writer::link(
                     new \moodle_url('/admin/tool/task/schedule_task.php',
                         array('task' => get_class($task))),
@@ -398,5 +398,16 @@ class helper {
         }
 
         return $settings;
+    }
+
+    /**
+     * Prepare the library name to be used as a cache key (remove whitespaces and replace dots to underscores).
+     *
+     * @param  string $library Library name.
+     * @return string Library name in a cache simple key format (a-zA-Z0-9_).
+     */
+    public static function get_cache_librarykey(string $library): string {
+        // Remove whitespaces and replace '.' to '_'.
+        return str_replace('.', '_', str_replace(' ', '', $library));
     }
 }

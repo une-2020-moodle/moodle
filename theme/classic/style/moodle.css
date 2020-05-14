@@ -12070,72 +12070,9 @@ body.h5p-embed .h5pmessages {
   font-size: 0.8203125rem;
   color: #6c757d; }
 
-#plugins-check-page .page-description {
-  color: #6c757d; }
-
-#plugins-check-page .checkforupdates .singlebutton {
-  margin: 5px 0;
-  padding: 0; }
-  #plugins-check-page .checkforupdates .singlebutton div,
-  #plugins-check-page .checkforupdates .singlebutton input {
-    margin: 0 3px 0 0; }
-
-#plugins-check-page #plugins-check-info .actions > div {
-  display: inline-block;
-  margin-right: 1em; }
-
-#plugins-check-page #plugins-check-info .actions .singlebutton {
-  margin: 5px 0;
-  padding: 0; }
-  #plugins-check-page #plugins-check-info .actions .singlebutton div,
-  #plugins-check-page #plugins-check-info .actions .singlebutton input {
-    margin: 0 3px 0 0; }
-
-#plugins-check-page #plugins-check .requires-ok {
-  color: #6c757d; }
-
 #plugins-check-page #plugins-check .status-missing td,
 #plugins-check-page #plugins-check .status-downgrade td {
   background-color: #f6d9d8; }
-
-#plugins-check-page #plugins-check .displayname .plugindir {
-  color: #6c757d;
-  font-size: 0.8203125rem; }
-
-#plugins-check-page #plugins-check .requires ul {
-  margin-left: 13px; }
-
-#plugins-check-page #plugins-check .status .actionbutton {
-  margin: 5px 0;
-  padding: 0; }
-  #plugins-check-page #plugins-check .status .actionbutton input {
-    margin: 0; }
-
-#plugins-check-page .plugins-check-dependencies-actions > div {
-  display: inline-block;
-  margin-right: 1em; }
-
-#plugins-check-page .plugins-check-dependencies-actions .singlebutton {
-  margin: 5px 0;
-  padding: 0; }
-  #plugins-check-page .plugins-check-dependencies-actions .singlebutton div,
-  #plugins-check-page .plugins-check-dependencies-actions .singlebutton input {
-    margin: 0 3px 0 0; }
-
-#plugins-check-page #plugins-check-available-dependencies .displayname .component {
-  font-size: 0.8203125rem;
-  color: #6c757d; }
-
-#plugins-check-page #plugins-check-available-dependencies .info .actions > div {
-  display: inline-block;
-  margin-right: 1em; }
-
-#plugins-check-page #plugins-check-available-dependencies .info .actions .dependencyinstall {
-  display: block;
-  margin: 5px 0;
-  padding: 0; }
-  #plugins-check-page #plugins-check-available-dependencies .info .actions .dependencyinstall input {
-    margin: 0; }
 
 #plugins-check-page .pluginupdateinfo,
 #plugins-control-panel .pluginupdateinfo {
@@ -13016,24 +12953,25 @@ body:not(.editing) .sitetopic ul.section {
 
 .course-content ul.topics,
 .course-content ul.weeks {
-  padding: 0; }
+  padding: 0;
+  margin: 0;
+  list-style: none; }
   .course-content ul.topics li.section,
   .course-content ul.weeks li.section {
     margin-top: 1rem;
     padding-bottom: 1rem; }
-    .course-content ul.topics li.section .content,
-    .course-content ul.weeks li.section .content {
-      margin: 0;
-      padding: 0; }
     .course-content ul.topics li.section .summary,
     .course-content ul.topics li.section .content > .availabilityinfo,
     .course-content ul.weeks li.section .summary,
     .course-content ul.weeks li.section .content > .availabilityinfo {
       margin-left: 25px; }
     .course-content ul.topics li.section .left,
-    .course-content ul.weeks li.section .left {
-      padding-top: 0;
-      text-align: right; }
+    .course-content ul.topics li.section .right,
+    .course-content ul.weeks li.section .left,
+    .course-content ul.weeks li.section .right {
+      padding: 0 6px 0;
+      text-align: right;
+      width: auto; }
 
 .course-content {
   margin-top: 0; }
@@ -13410,9 +13348,8 @@ span.editinstructions {
     #course-category-listings ul.ml ul.ml {
       margin: 0; }
   #course-category-listings .listitem[data-selected='1'] {
-    background-color: rgba(0, 0, 0, 0.05); }
-    #course-category-listings .listitem[data-selected='1']:hover {
-      background-color: rgba(0, 0, 0, 0.075); }
+    border-left: calc(1px + 5px) solid #5bc0de;
+    padding-left: calc(1.25rem - 5px); }
   #course-category-listings .item-actions {
     margin-right: 1em;
     display: inline-block; }
@@ -13433,7 +13370,6 @@ span.editinstructions {
   #course-category-listings .listitem > div .without-actions {
     color: #333; }
   #course-category-listings .listitem > div .idnumber {
-    color: #a1a1a8;
     margin-right: 2em; }
   #course-category-listings .listitem[data-visible="0"] {
     color: #6c757d; }
@@ -13462,17 +13398,6 @@ span.editinstructions {
     margin: -2px 6px 0 0; }
   #course-category-listings #category-listing .listitem.collapsed > ul.ml {
     display: none; }
-  #course-category-listings #category-listing .listitem > div > .ba-checkbox {
-    width: 2.2em;
-    text-align: center;
-    margin: -1px 0.5em 0 0;
-    padding-top: 2px; }
-  #course-category-listings #category-listing .listitem.highlight > div > .ba-checkbox {
-    background-color: rgba(0, 0, 0, 0.075); }
-  #course-category-listings #category-listing .listitem[data-selected='1'] > div > .ba-checkbox {
-    margin: 0 0.5em 0 0;
-    padding: 0;
-    background-color: inherit; }
   #course-category-listings #category-listing .listitem:first-child > div .item-actions .action-moveup,
   #course-category-listings #category-listing .listitem:last-child > div .item-actions .action-movedown {
     display: none; }

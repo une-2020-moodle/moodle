@@ -15,32 +15,35 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Database enrolment plugin custom settings.
+ * Statement score for xAPI structure checking and usage.
  *
- * @package    enrol_database
- * @copyright  2013 Darko Miletic
+ * @package    core_xapi
+ * @copyright  2020 Ferran Recio
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace core_xapi\local\statement;
+
+use stdClass;
 
 /**
- * Class implements new specialized setting for course categories that are loaded
- * only when required
- * @author Darko Miletic
+ * Abstract xAPI score class.
  *
+ * @copyright  2020 Ferran Recio
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class enrol_database_admin_setting_category extends admin_setting_configselect {
-    public function __construct($name, $visiblename, $description) {
-        parent::__construct($name, $visiblename, $description, 1, null);
-    }
+class item_score extends item {
 
-    public function load_choices() {
-        if (is_array($this->choices)) {
-            return true;
-        }
+    /**
+     * Function to create an item from part of the xAPI statement.
+     *
+     * @param stdClass $data the original xAPI element
+     * @return item item_score xAPI generated
+     */
+    public static function create_from_data(stdClass $data): item {
 
-        $this->choices = make_categories_options();
-        return true;
+        // Required property checks will appear here in the future.
+
+        return new self($data);
     }
 }
