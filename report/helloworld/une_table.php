@@ -51,12 +51,30 @@ class une_table extends table_sql {
 
     /**
      * This function is called for each data row to allow processing of the
-     * status value.
+     * actions value.
      *
-     * @return $string Just returns "Active".
+     * @return $string $OUTPUT of the action link created.
      */
-    function col_actions() {
-        return 'TODO';
+    function col_actions($row) {  
+        global $OUTPUT;
+
+        $html  = '';
+
+        $action = new \confirm_action(get_string('areyousure'));
+        $url = new moodle_url($this->baseurl);
+        $url->params(array('removecohort' => $row->id, 'sesskey' => sesskey()));
+        $html .= $OUTPUT->action_link($url, 'Delete', $action, null, new \pix_icon('t/delete',
+            get_string('stopsyncingcohort', 'tool_lp')));
+
+        $html .= '</br>';
+        $url = new moodle_url('/user/profile.php');
+        $url->params(array('id' => $row->id));
+        $html .= $OUTPUT->action_link($url, 'Profile', null, null, new \pix_icon('t/groupn',
+            get_string('stopsyncingcohort', 'tool_lp')));
+        
+        // would we still be returning a string to render here or action links?
+        return $html;
+    
     }
 
     /**
