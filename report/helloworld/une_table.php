@@ -6,7 +6,8 @@
  */
 require_once('traits.php');
 
-class une_table extends table_sql implements tableTrait {
+class une_table extends table_sql {
+    use tableTrait;
 
     /**
      * Constructor
