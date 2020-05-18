@@ -4,7 +4,9 @@
  *  for defining some custom column names and proccessing
  * Username and Password feilds using custom and other column methods.
  */
-class une_table extends table_sql {
+require_once('traits.php');
+
+class une_table extends table_sql implements tableTrait {
 
     /**
      * Constructor
