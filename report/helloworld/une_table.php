@@ -1,8 +1,7 @@
 <?php
 /**
- * Test table class to be put in test_table.php of root of Moodle installation.
- *  for defining some custom column names and proccessing
- * Username and Password feilds using custom and other column methods.
+ * New table class to setup defining some customization to the activity 
+ * column and proccess action_links.
  */
 require_once('traits.php');
 
@@ -56,6 +55,7 @@ class une_table extends table_sql {
      * This function is called for each data row to allow processing of the
      * actions value.
      *
+     * @param  object $row
      * @return $string $OUTPUT of the action link created.
      */
     function col_actions($row) {  
@@ -75,6 +75,10 @@ class une_table extends table_sql {
         $html .= $OUTPUT->action_link($url, 'Profile', null, null, new \pix_icon('t/groupn',
             get_string('stopsyncingcohort', 'tool_lp')));
         
+        // Test new make_actionlink function
+       $html .= build_actionlink(null,'/user/profile.php',null,'Profile','t/groupn');
+       //$html .= traitFunc('Matt');
+
         // would we still be returning a string to render here or action links?
         return $html;
     
