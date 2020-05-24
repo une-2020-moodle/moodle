@@ -59,9 +59,27 @@ class une_table extends table_sql {
      * @return $string $OUTPUT of the action link created.
      */
     function col_actions($row) {  
-        global $OUTPUT;
+        return $this->build_arraylink(
+            array(
+                [new \confirm_action(get_string('areyousure')),
+                '$this->baseurl',
+                "params(array('removecohort' => $row->id,'sesskey' => sesskey()))",
+                'Delete',
+                't/delete',
+                $row]
+                ,
+                [null,
+                '/user/profile.php',
+                null,
+                'Profile',
+                't/groupn',
+                $row]
+            )
+        );
 
-        $html  = '';
+/*        global $OUTPUT;
+
+        $html = '';
 
         $action = new \confirm_action(get_string('areyousure'));
         $url = new moodle_url($this->baseurl);
@@ -75,13 +93,9 @@ class une_table extends table_sql {
         $html .= $OUTPUT->action_link($url, 'Profile', null, null, new \pix_icon('t/groupn',
             get_string('stopsyncingcohort', 'tool_lp')));
         
-        // Test new make_actionlink function
-       $html .= build_actionlink(null,'/user/profile.php',null,'Profile','t/groupn');
-       //$html .= traitFunc('Matt');
-
         // would we still be returning a string to render here or action links?
         return $html;
-    
+*/    
     }
 
     /**
