@@ -52,30 +52,41 @@ class une_table extends table_sql {
     }
 
     /**
-     * This function is called for each data row to allow processing of the
-     * actions value.
+     * This function is called by the col_actions function to build the
+     * action_links from an array of defined link parameters.
      *
      * @param  object $row
-     * @return $string $OUTPUT of the action link created.
+     * @return array  An array of data used to create action links.
      */
-    function col_actions($row) {  
-        return $this->build_arraylink(
-            array(
-                [new \confirm_action(get_string('areyousure')),
-                '$this->baseurl',
-                "params(array('removecohort' => $row->id,'sesskey' => sesskey()))",
+    public function table_actions($row) {
+        $deleteurl = new moodle_url('/user/profile.php');
+        $deleteurl->params(array('id' => $row->id));
+
+        return array(
+            new action_link(
+                $deleteurl,
                 'Delete',
-                't/delete',
-                $row]
-                ,
-                [null,
-                '/user/profile.php',
                 null,
+                null,
+ //               new \confirm_action(get_string('areyousure')),
+                new \pix_icon('t/delete',get_string('stopsyncingcohort', 'tool_lp'))
+            ),
+            new action_link(
+                new moodle_url('/user/profile.php'),
                 'Profile',
-                't/groupn',
-                $row]
-            )
+                null,
+                null,
+                new \pix_icon('t/groupn',get_string('stopsyncingcohort', 'tool_lp'))
+            ),
+            new action_link(
+                new moodle_url('/user/profile.php'),
+                'Profile',
+                null,
+                null,
+                new \pix_icon('t/groupn',get_string('stopsyncingcohort', 'tool_lp'))
+            ) 
         );
+
 
 /*        global $OUTPUT;
 
