@@ -21,8 +21,7 @@
  */
 
 require_once('../../config.php');
-require_once($CFG->libdir . '/tablelib.php');
-require_once('une_table.php');
+//require_once('une_table.php');
 
 $PAGE->set_url('/report/helloworld/view.php');
 $PAGE->set_context(context_system::instance());
@@ -45,7 +44,7 @@ function make_actionlink($path,$title) {
 // Defining custom une_table
 $download = optional_param('download', '', PARAM_ALPHA);
 
-$helloworld_unetable = new une_table('uniqueid');
+$helloworld_unetable = new \report_helloworld\output\une_table('uniqueid');
 $helloworld_unetable->is_downloading($download, 'test', 'testing123');
 
 /*

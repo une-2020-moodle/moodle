@@ -3,10 +3,13 @@
  * New table class to setup defining some customization to the activity 
  * column and proccess action_links.
  */
+namespace report_helloworld\output;
+
+require_once($CFG->libdir . '/tablelib.php');
 require_once('traits.php');
 
-class une_table extends table_sql {
-    use tableTrait;
+class une_table extends \table_sql {
+    use \tableTrait;
 
     /**
      * Constructor
@@ -59,54 +62,32 @@ class une_table extends table_sql {
      * @return array  An array of data used to create action links.
      */
     public function table_actions($row) {
-        $deleteurl = new moodle_url('/user/profile.php');
-        $deleteurl->params(array('id' => $row->id));
+        $deleteurl = new \moodle_url('/user/profile.php');
+        $deleteurl->params(['id' => $row->id,'foo' => 'bar']);
 
-        return array(
-            new action_link(
+        return [
+            new \action_link(
                 $deleteurl,
                 'Delete',
+                new \confirm_action(get_string('areyousure')),
                 null,
-                null,
- //               new \confirm_action(get_string('areyousure')),
                 new \pix_icon('t/delete',get_string('stopsyncingcohort', 'tool_lp'))
             ),
-            new action_link(
-                new moodle_url('/user/profile.php'),
+            new \action_link(
+                new \moodle_url('/user/profile.php'),
                 'Profile',
                 null,
                 null,
                 new \pix_icon('t/groupn',get_string('stopsyncingcohort', 'tool_lp'))
             ),
-            new action_link(
-                new moodle_url('/user/profile.php'),
+            new \action_link(
+                new \moodle_url('/user/profile.php'),
                 'Profile',
                 null,
                 null,
                 new \pix_icon('t/groupn',get_string('stopsyncingcohort', 'tool_lp'))
             ) 
-        );
-
-
-/*        global $OUTPUT;
-
-        $html = '';
-
-        $action = new \confirm_action(get_string('areyousure'));
-        $url = new moodle_url($this->baseurl);
-        $url->params(array('removecohort' => $row->id, 'sesskey' => sesskey()));
-        $html .= $OUTPUT->action_link($url, 'Delete', $action, null, new \pix_icon('t/delete',
-            get_string('stopsyncingcohort', 'tool_lp')));
-
-        $html .= '</br>';
-        $url = new moodle_url('/user/profile.php');
-        $url->params(array('id' => $row->id));
-        $html .= $OUTPUT->action_link($url, 'Profile', null, null, new \pix_icon('t/groupn',
-            get_string('stopsyncingcohort', 'tool_lp')));
-        
-        // would we still be returning a string to render here or action links?
-        return $html;
-*/    
+        ]; 
     }
 
     /**
