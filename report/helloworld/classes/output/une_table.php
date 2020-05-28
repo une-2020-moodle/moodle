@@ -6,10 +6,9 @@
 namespace report_helloworld\output;
 
 require_once($CFG->libdir . '/tablelib.php');
-require_once('traits.php');
 
 class une_table extends \table_sql {
-    use \tableTrait;
+    use \action_table_trait;
 
     /**
      * Constructor
@@ -57,7 +56,8 @@ class une_table extends \table_sql {
     /**
      * This function is called by the col_actions function to build the
      * action_links from an array of defined link parameters.
-     *
+    *      action_link(url, text, component_action, attributes, icon)
+    * 
      * @param  object $row
      * @return array  An array of data used to create action links.
      */
@@ -84,7 +84,7 @@ class une_table extends \table_sql {
                 new \moodle_url('/user/profile.php'),
                 'Profile',
                 null,
-                null,
+                ['disabled' => true],
                 new \pix_icon('t/groupn',get_string('stopsyncingcohort', 'tool_lp'))
             ) 
         ]; 
