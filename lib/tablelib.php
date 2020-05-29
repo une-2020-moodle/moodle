@@ -2213,7 +2213,7 @@ trait action_table_trait {
     public function col_actions($row) {
         global $OUTPUT;
 
-        $linkarray = $this->table_actions($row);
+        $linkarray = $this->get_table_actions($row);
         $html = '';
 
         foreach ($linkarray as $link) {
@@ -2223,5 +2223,34 @@ trait action_table_trait {
 
           return $html;
     }
+
+    abstract public function get_table_actions($row);
 }
 
+
+class action_html_table {
+    use \action_table_trait;
+
+    /**
+     * This function is called by the action_table_trait's col_actions
+     * function to get action_links from an array defined in the
+     * table_actions function.
+    *      action_link(url, text, component_action, attributes, icon)
+    * 
+     * @param  object $row
+     * @return array  An array of data used to create action links.
+     */
+    private $actions;
+
+    public function get_table_actions($row) {
+        return $this->actions;
+    }
+
+    public function set_table_actions($newactions) {
+        $this->actions = $newactions;
+    }
+
+    public function add_table_action($newaction) {
+        array_push($this->actions,$newaction);
+    }
+}

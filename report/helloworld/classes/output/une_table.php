@@ -61,7 +61,7 @@ class une_table extends \table_sql {
      * @param  object $row
      * @return array  An array of data used to create action links.
      */
-    public function table_actions($row) {
+    public function get_table_actions($row) {
         $deleteurl = new \moodle_url('/user/profile.php');
         $deleteurl->params(['id' => $row->id,'foo' => 'bar']);
 
