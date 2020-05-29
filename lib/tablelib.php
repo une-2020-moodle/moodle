@@ -2228,28 +2228,38 @@ trait action_table_trait {
 }
 
 
-class action_html_table {
+class html_action_table extends html_table {
     use \action_table_trait;
+
+    private $actions;
 
     /**
      * This function is called by the action_table_trait's col_actions
-     * function to get action_links from an array defined in the
-     * table_actions function.
-    *      action_link(url, text, component_action, attributes, icon)
-    * 
+     * function to get an array of action_links.
+     *      action_link(url, text, component_action, attributes, icon)
+     * 
      * @param  object $row
-     * @return array  An array of data used to create action links.
+     * @return array  An array of action_links.
      */
-    private $actions;
-
     public function get_table_actions($row) {
         return $this->actions;
     }
 
+    /**
+     * This function sets the value of the class' $actions variable
+     * 
+     * @param array $newactions The an array of action_links to store
+     *                          in $actions.
+     */
     public function set_table_actions($newactions) {
         $this->actions = $newactions;
     }
 
+    /**
+     * This function appends to the class' $actions variable
+     * 
+     * @param action_link $newaction The new action to append to $actions.
+     */
     public function add_table_action($newaction) {
         array_push($this->actions,$newaction);
     }

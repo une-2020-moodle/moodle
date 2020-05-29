@@ -54,12 +54,12 @@ class une_table extends \table_sql {
     }
 
     /**
-     * This function is called by the col_actions function to build the
-     * action_links from an array of defined link parameters.
-    *      action_link(url, text, component_action, attributes, icon)
-    * 
+     * This function is called by the action_table_trait's col_actions
+     * function to get an array of action_links.
+     *      action_link(url, text, component_action, attributes, icon)
+     * 
      * @param  object $row
-     * @return array  An array of data used to create action links.
+     * @return array  An array of action_links.
      */
     public function get_table_actions($row) {
         $deleteurl = new \moodle_url('/user/profile.php');
