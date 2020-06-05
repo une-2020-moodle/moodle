@@ -39,6 +39,7 @@ require_once($CFG->libdir . '/tablelib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class step_list extends \flexible_table {
+    use \action_table_trait;
 
     /**
      * @var     int     $tourid     The id of the tour.
@@ -110,34 +111,105 @@ class step_list extends \flexible_table {
     }
 
     /**
-     * Format the current row's actions column.
+     * Used by the action_table_trait (col_actions function) to
+     * render the table's actions.
+     * 
+     * Uses an action_menu compiled of action_links,
+     * i.e. action_link(url, text, component_action, attributes, icon)
      *
-     * @param   step    $step       The step for this row.
-     * @return  string
+     * @param  object $row
+     * @return action_menu $action_group The actions for the table.
      */
-    protected function col_actions(step $step) {
-        $actions = [];
+    public function get_table_actions($row) {
 
-        if ($step->is_first_step()) {
-            $actions[] = helper::get_filler_icon();
+        // The actions menu for the table.
+        $action_group = new \action_menu;
+
+        if ($row->is_first_step()) {
+            $action_group->add_secondary_action(
+                new \action_link(
+                    $row->get_moveup_link(),
+                    get_string('movestepup', 'tool_usertours'),
+                    null,
+                    ['disabled' => true],
+                    new \pix_icon(
+                        't/up',
+                        get_string('movestepup', 'tool_usertours')
+                    )
+                )
+            );
         } else {
-            $actions[] = helper::format_icon_link($step->get_moveup_link(), 't/up', get_string('movestepup', 'tool_usertours'));
+            $action_group->add_secondary_action(
+                new \action_link(
+                    $row->get_moveup_link(),
+                    get_string('movestepup', 'tool_usertours'),
+                    null,
+                    null,
+                    new \pix_icon(
+                        't/up',
+                        get_string('movestepup', 'tool_usertours')
+                    )
+                )
+            );
         }
 
-        if ($step->is_last_step()) {
-            $actions[] = helper::get_filler_icon();
+        if ($row->is_last_step()) {
+            $action_group->add_secondary_action(
+                new \action_link(
+                    $row->get_movedown_link(),
+                    get_string('movestepdown', 'tool_usertours'),
+                    null,
+                    ['disabled' => true],
+                    new \pix_icon(
+                        't/down',
+                        get_string('movestepdown', 'tool_usertours')
+                    )
+                )
+            );
         } else {
-            $actions[] = helper::format_icon_link($step->get_movedown_link(), 't/down',
-                    get_string('movestepdown', 'tool_usertours'));
+            $action_group->add_secondary_action(
+                new \action_link(
+                    $row->get_movedown_link(),
+                    get_string('movestepdown', 'tool_usertours'),
+                    null,
+                    null,
+                    new \pix_icon(
+                        't/down',
+                        get_string('movestepdown', 'tool_usertours')
+                    )
+                )
+            );
         }
 
-        $actions[] = helper::format_icon_link($step->get_edit_link(), 't/edit', get_string('edit'));
+        $action_group->add_secondary_action(
+            new \action_link(
+                $row->get_edit_link(),
+                get_string('edit'),
+                null,
+                null,
+                new \pix_icon(
+                    't/edit',
+                    get_string('edit')
+                )
+            )
+        );
 
-        $actions[] = helper::format_icon_link($step->get_delete_link(), 't/delete', get_string('delete'), 'moodle', [
-            'data-action'   => 'delete',
-            'data-id'       => $step->get_id(),
-        ]);
+        $deleteurl = $row->get_delete_link();
+        $deleteurl->params(['id' => $row->get_id()]);
 
-        return implode('&nbsp;', $actions);
+        $action_group->add_secondary_action(
+            new \action_link(
+                $deleteurl,
+                get_string('delete'),
+                new \confirm_action(get_string('areyousure')),
+                null,
+                new \pix_icon(
+                    't/delete',
+                    get_string('delete')
+                )
+            )
+        );
+
+        return $action_group;
     }
 }
