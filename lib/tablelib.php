@@ -2218,3 +2218,79 @@ class table_dataformat_export_format extends table_default_export_format_parent 
     }
 }
 
+/**
+ * Adds actions to a flexible_table or table_sql in a
+ * standardized way. Table must follow the convention that
+ * there is a column named 'actions'.
+ *
+ * @package    core
+ * @copyright  2020 onwards Matthew Tolmie
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+trait action_table_trait {
+
+    /**
+     * Called for each data row to allow processing of the actions value.
+     *
+     * @param  object $row
+     * @return string $OUTPUT of the action link created.
+     */
+    public function col_actions($row) {
+        global $OUTPUT;
+
+        // return $html;
+        return $OUTPUT->render($this->get_table_actions($row));
+    }
+    
+    /**
+     * Should return an array of the table's actions as action_links.
+     * i.e. action_link(url, text, component_action, attributes, icon)
+     *
+     * @param  object $row
+     * @return array  An array of action_links.
+     */
+    abstract public function get_table_actions($row);
+}
+
+/**
+ * Skeleton to extend html_tables to include action_table_trait functionality
+ *
+ * @package    core
+ * @copyright  2020 onwards Matthew Tolmie
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class html_action_table extends html_table {
+    use \action_table_trait;
+
+    /** @var array The actions list for the table */
+    private $actions;
+
+    /**
+     * Return an array of the table's actions as action_links.
+     * i.e. action_link(url, text, component_action, attributes, icon)
+     *
+     * @param  object $row
+     * @return array  An array of action_links.
+     */
+    public function get_table_actions($row) {
+        return $this->actions;
+    }
+
+    /**
+     * Sets the value of the class' $actions variable
+     *
+     * @param array $newactions An array of action_links.
+     */
+    public function set_table_actions($newactions) {
+        $this->actions = $newactions;
+    }
+
+    /**
+     * Appends to the class' $actions variable
+     *
+     * @param action_link $newaction The new action to append.
+     */
+    public function add_table_action($newaction) {
+        array_push($this->actions, $newaction);
+    }
+}
