@@ -43,6 +43,7 @@ use core_competency\template;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class template_cohorts_table extends table_sql {
+    use \action_table_trait;
 
     /** @var context The context. */
     protected $context;
@@ -77,22 +78,39 @@ class template_cohorts_table extends table_sql {
     }
 
     /**
-     * Column actions.
+     * Used by the action_table_trait (col_actions function) to
+     * render the table's actions.
+     * 
+     * Uses an action_menu compiled of action_links,
+     * i.e. action_link(url, text, component_action, attributes, icon)
      *
      * @param  object $row
-     * @return string
+     * @return action_menu $action_group The actions for the table.
      */
-    protected function col_actions($row) {
-        global $OUTPUT;
+    public function get_table_actions($row) {
 
-        $action = new \confirm_action(get_string('areyousure'));
-        $url = new moodle_url($this->baseurl);
-        $url->params(array('removecohort' => $row->id, 'sesskey' => sesskey()));
-        $actionlink = $OUTPUT->action_link($url, '', $action, null, new \pix_icon('t/delete',
-            get_string('stopsyncingcohort', 'tool_lp')));
+        // The actions menu for the table.
+        $action_group = new \action_menu;
 
-        return $actionlink;
+        $removecohorturl = new moodle_url($this->baseurl);
+        $removecohorturl->params(['removecohort' => $row->id,
+            'sesskey' => sesskey()]
+        );
 
+        $action_group->add_secondary_action(
+            new \action_link(
+                $removecohorturl,
+                get_string('stopsyncingcohort', 'tool_lp'),
+                new \confirm_action(get_string('areyousure')),
+                null,
+                new \pix_icon(
+                    't/delete',
+                    get_string('stopsyncingcohort', 'tool_lp')
+                )
+            )
+        );
+
+        return $action_group;
     }
 
     /**
