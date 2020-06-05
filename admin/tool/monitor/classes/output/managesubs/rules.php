@@ -37,6 +37,7 @@ require_once($CFG->libdir . '/tablelib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class rules extends \table_sql implements \renderable {
+    use \action_table_trait;
 
     /**
      * @var int course id.
@@ -65,7 +66,7 @@ class rules extends \table_sql implements \renderable {
         parent::__construct($uniqueid);
 
         $this->set_attribute('class', 'toolmonitor subscriberules generaltable generalbox');
-        $this->define_columns(array('name', 'description', 'course', 'plugin', 'eventname', 'filters', 'select'));
+        $this->define_columns(array('name', 'description', 'course', 'plugin', 'eventname', 'filters', 'actions'));
         $this->define_headers(array(
                 get_string('rulename', 'tool_monitor'),
                 get_string('description'),
@@ -157,28 +158,58 @@ class rules extends \table_sql implements \renderable {
     }
 
     /**
-     * Generate content for select column.
+     * Used by the action_table_trait (col_actions function) to
+     * render the table's actions.
+     * 
+     * Uses an action_menu compiled of action_links,
+     * i.e. action_link(url, text, component_action, attributes, icon)
      *
-     * @param \tool_monitor\rule $rule rule object
-     * @return string html used to display the select field.
+     * @param  object $row
+     * @return action_menu $action_group The actions for the table.
      */
-    public function col_select(\tool_monitor\rule $rule) {
-        global $OUTPUT;
+    public function get_table_actions($row) {
 
-        $options = $rule->get_subscribe_options($this->courseid);
-        $text = get_string('subscribeto', 'tool_monitor', $rule->get_name($this->context));
+        // The actions menu for the table.
+        $action_group = new \action_menu;
+
+        $options = $row->get_subscribe_options($this->courseid);
+        $text = get_string('subscribeto', 'tool_monitor',
+            $row->get_name($this->context)
+        );
 
         if ($options instanceof \single_select) {
-            $options->set_label($text, array('class' => 'accesshide'));
-            return $OUTPUT->render($options);
+            $action_group->add_secondary_action(
+                new \action_link(
+                    $options,
+                    $text,
+                    null,
+                    null,
+                    null
+                )
+            );
         } else if ($options instanceof \moodle_url) {
-            // A \moodle_url to subscribe.
-            $icon = $OUTPUT->pix_icon('t/add', $text);
-            $link = new \action_link($options, $icon);
-            return $OUTPUT->render($link);
+            $action_group->add_secondary_action(
+                new \action_link(
+                    $options,
+                    $text,
+                    null,
+                    null,
+                    new \pix_icon('t/add', '')
+                )
+            );
         } else {
-            return $options;
+            $action_group->add_secondary_action(
+                new \action_link(
+                    new \moodle_url('.'),
+                    $options,
+                    null,
+                    ['disabled' => true],
+                    new \pix_icon('i/empty', '')
+                )
+            );
         }
+
+        return $action_group;
     }
 
     /**
