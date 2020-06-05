@@ -163,16 +163,16 @@ class subs extends \table_sql implements \renderable {
     }
 
     /**
-     * This function is called by the action_table_trait's col_actions
-     * function to get an array of action_links.
-     *      action_link(url, text, component_action, attributes, icon)
-     * 
+     * Used by the action_table_trait (col_actions function) to
+     * render the table's actions as action_links.
+     * i.e. action_link(url, text, component_action, attributes, icon)
+     *
      * @param  object $row
      * @return array  An array of action_links.
      */
     public function get_table_actions($row) {
         $unsubscribeurl = new \moodle_url('/admin/tool/monitor/index.php');
-        $unsubscribeurl->params(['subscriptionid' => $row->id,'action' => 'unsubscribe',
+        $unsubscribeurl->params(['subscriptionid' => $row->id, 'action' => 'unsubscribe',
                             'courseid' => $this->courseid, 'sesskey' => sesskey()]);
 
         return [
@@ -183,7 +183,7 @@ class subs extends \table_sql implements \renderable {
                 null,
                 new \pix_icon('t/delete', get_string('deletesubscription', 'tool_monitor'))
             )
-        ]; 
+        ];
     }
 
     /**

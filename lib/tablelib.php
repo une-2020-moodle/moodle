@@ -2201,14 +2201,18 @@ class table_dataformat_export_format extends table_default_export_format_parent 
     }
 }
 
+/**
+ * Adds actions to a flexible_table or table_sql in a 
+ * standardized way. Table must follow the convention that
+ * there is a column named 'actions'.
+ */
 trait action_table_trait {
 
     /**
-     * This function is called for each data row to allow processing of the
-     * actions value.
+     * Called for each data row to allow processing of the actions value.
      *
      * @param  object $row
-     * @return $string $OUTPUT of the action link created.
+     * @return string $OUTPUT of the action link created.
      */
     public function col_actions($row) {
         global $OUTPUT;
@@ -2217,27 +2221,38 @@ trait action_table_trait {
         $html = '';
 
         foreach ($linkarray as $link) {
-            $html .= $OUTPUT->render($link);
+            $html .= '<span class=text-nowrap>' . $OUTPUT->render($link) . '</span>';
             $html .= '</br>';
-          } 
+        }
 
-          return $html;
+        return $html;
     }
-
+    /**
+     * Should return an array of the table's actions as action_links.
+     * i.e. action_link(url, text, component_action, attributes, icon)
+     *
+     * @param  object $row
+     * @return array  An array of action_links.
+     */
     abstract public function get_table_actions($row);
 }
 
-
+/**
+ * Skeleton of class that would extend html_tables to include
+ * the action_table_trait functionality 
+ */
 class html_action_table extends html_table {
     use \action_table_trait;
 
+    /**
+     * The actions list for the table.
+     */
     private $actions;
 
     /**
-     * This function is called by the action_table_trait's col_actions
-     * function to get an array of action_links.
-     *      action_link(url, text, component_action, attributes, icon)
-     * 
+     * Return an array of the table's actions as action_links.
+     * i.e. action_link(url, text, component_action, attributes, icon)
+     *
      * @param  object $row
      * @return array  An array of action_links.
      */
@@ -2246,21 +2261,20 @@ class html_action_table extends html_table {
     }
 
     /**
-     * This function sets the value of the class' $actions variable
-     * 
-     * @param array $newactions The an array of action_links to store
-     *                          in $actions.
+     * Sets the value of the class' $actions variable
+     *
+     * @param array $newactions An array of action_links.
      */
     public function set_table_actions($newactions) {
         $this->actions = $newactions;
     }
 
     /**
-     * This function appends to the class' $actions variable
-     * 
-     * @param action_link $newaction The new action to append to $actions.
+     * Appends to the class' $actions variable
+     *
+     * @param action_link $newaction The new action to append.
      */
     public function add_table_action($newaction) {
-        array_push($this->actions,$newaction);
+        array_push($this->actions, $newaction);
     }
 }

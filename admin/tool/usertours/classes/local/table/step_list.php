@@ -111,63 +111,59 @@ class step_list extends \flexible_table {
     }
 
     /**
-     * This function is called by the action_table_trait's col_actions
-     * function to get an array of action_links.
-     *      action_link(url, text, component_action, attributes, icon)
-     * 
+     * Used by the action_table_trait (col_actions function) to
+     * render the table's actions as action_links.
+     * i.e. action_link(url, text, component_action, attributes, icon)
+     *
      * @param  object $row
      * @return array  An array of action_links.
      */
     public function get_table_actions($row) {
-//        $deleteurl = new \moodle_url('/user/profile.php');
-//        $deleteurl->params(['id' => $row->id,'foo' => 'bar']);
-        $actions = [];
+
+    /**
+     * The actions list for the table.
+     */
+    $actions = [];
 
         if (!$row->is_first_step()) {
             $actions[] = new \action_link(
                 $row->get_moveup_link(),
+                get_string('movestepup', 'tool_usertours'),
                 null,
                 null,
-                null,
-                new \pix_icon('t/up',get_string('movestepup', 'tool_usertours'))
+                new \pix_icon('t/up', get_string('movestepup', 'tool_usertours'))
             );
         }
 
         if (!$row->is_last_step()) {
             $actions[] = new \action_link(
                 $row->get_movedown_link(),
+                get_string('movestepdown', 'tool_usertours'),
                 null,
                 null,
-                null,
-                new \pix_icon('t/down',get_string('movestepdown', 'tool_usertours'))
+                new \pix_icon('t/down', get_string('movestepdown', 'tool_usertours'))
             );
         }
 
         $actions[] = new \action_link(
             $row->get_edit_link(),
-            null,
+            get_string('edit'),
             null,
             null,
             new \pix_icon('t/edit', get_string('edit'))
         );
 
         $deleteurl = new \moodle_url('/user/profile.php');
-        $deleteurl->params(['id' => $row->get_id(),'foo' => 'bar']);
+        $deleteurl->params(['id' => $row->get_id()]);
 
         $actions[] = new \action_link(
             $deleteurl,
-            null,
+            get_string('delete'),
             new \confirm_action(get_string('areyousure')),
             null,
-            new \pix_icon('t/delete', get_string('delete'), 'moodle')
+            new \pix_icon('t/delete', get_string('delete'))
         );
 
-/*        
-        $actions[] = helper::format_icon_link($step->get_delete_link(), 't/delete', get_string('delete'), 'moodle', [
-            'data-action'   => 'delete',
-            'data-id'       => $step->get_id(),
-        ]);
-*/
         return $actions;
     }
 }

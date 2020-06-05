@@ -78,10 +78,10 @@ class template_cohorts_table extends table_sql {
     }
 
     /**
-     * This function is called by the action_table_trait's col_actions
-     * function to get an array of action_links.
-     *      action_link(url, text, component_action, attributes, icon)
-     * 
+     * Used by the action_table_trait (col_actions function) to
+     * render the table's actions as action_links.
+     * i.e. action_link(url, text, component_action, attributes, icon)
+     *
      * @param  object $row
      * @return array  An array of action_links.
      */
@@ -95,9 +95,9 @@ class template_cohorts_table extends table_sql {
                 '',
                 new \confirm_action(get_string('areyousure')),
                 null,
-                new \pix_icon('t/delete',get_string('stopsyncingcohort', 'tool_lp'))
-            ) 
-        ]; 
+                new \pix_icon('t/delete', get_string('stopsyncingcohort', 'tool_lp'))
+            )
+        ];
     }
 
     /**
